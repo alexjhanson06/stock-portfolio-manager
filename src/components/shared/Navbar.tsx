@@ -30,6 +30,18 @@ export default async function Navbar() {
             >
               AI Insights
             </Link>
+            <Link
+              href="/risk"
+              className="text-sm text-gray-600 hover:text-gray-900 font-medium"
+            >
+              Risk
+            </Link>
+            <Link
+              href="/allocate"
+              className="text-sm text-gray-600 hover:text-gray-900 font-medium"
+            >
+              Allocate
+            </Link>
           </div>
         </div>
         <div className="flex items-center gap-4">

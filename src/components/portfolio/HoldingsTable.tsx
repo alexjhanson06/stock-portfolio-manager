@@ -13,15 +13,24 @@ interface Props {
 
 export default function HoldingsTable({ holdings, onDelete }: Props) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string>("");
 
-  async function handleDelete(id: string) {
-    setDeletingId(id);
+  async function handleConfirmDelete() {
+    if (!confirmId) return;
+    setDeletingId(confirmId);
+    setConfirmId(null);
+    setDeleteError("");
     try {
-      await onDelete(id);
+      await onDelete(confirmId);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete holding");
     } finally {
       setDeletingId(null);
     }
   }
+
+  const confirmHolding = holdings.find((h) => h.id === confirmId);
 
   if (holdings.length === 0) {
     return (
@@ -34,10 +43,40 @@ export default function HoldingsTable({ holdings, onDelete }: Props) {
   }
 
   return (
+    <>
+      {confirmId && confirmHolding && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Remove Holding</h2>
+            <p className="text-sm text-gray-600 mb-6">
+              Are you sure you want to remove{" "}
+              <span className="font-semibold text-gray-900">{confirmHolding.symbol}</span>
+              {confirmHolding.name ? ` (${confirmHolding.name})` : ""}? This cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button variant="ghost" size="sm" onClick={() => setConfirmId(null)}>
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                className="bg-red-600 hover:bg-red-700 text-white"
+                onClick={handleConfirmDelete}
+              >
+                Remove
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     <Card>
       <CardHeader>
         <CardTitle>Your Holdings</CardTitle>
       </CardHeader>
+      {deleteError && (
+        <div className="mx-6 mt-2 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+          {deleteError}
+        </div>
+      )}
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -121,10 +160,10 @@ export default function HoldingsTable({ holdings, onDelete }: Props) {
                         variant="ghost"
                         size="sm"
                         className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => handleDelete(h.id)}
+                        onClick={() => setConfirmId(h.id)}
                         disabled={deletingId === h.id}
                       >
-                        {deletingId === h.id ? "..." : "Remove"}
+                        {deletingId === h.id ? "Removing..." : "Remove"}
                       </Button>
                     </td>
                   </tr>
@@ -135,5 +174,6 @@ export default function HoldingsTable({ holdings, onDelete }: Props) {
         </div>
       </CardContent>
     </Card>
+    </>
   );
 }

@@ -13,7 +13,7 @@ export default async function InsightsPage() {
     <>
       <Navbar />
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">AI Insights</h1>
+        <h1 className="text-2xl font-bold text-amber-400 mb-2">AI Insights</h1>
         <p className="text-gray-500 mb-6">
           Educational analysis only — not financial advice.
         </p>

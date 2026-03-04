@@ -8,13 +8,14 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  passwordHash String
-  name         String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  holdings     Holding[]
+  id             String          @id @default(cuid())
+  email          String          @unique
+  passwordHash   String
+  name           String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  holdings       Holding[]
+  allocationPlan AllocationPlan?
 
   @@map("users")
 }
@@ -31,4 +32,19 @@ model Holding {
 
   @@index([userId])
   @@map("holdings")
+}
+
+model AllocationPlan {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  age            Int
+  goal           String
+  riskTolerance  String
+  equityFraction Float
+  targets        Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("allocation_plans")
 }

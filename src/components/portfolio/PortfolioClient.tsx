@@ -47,7 +47,10 @@ export default function PortfolioClient() {
 
   const handleDelete = async (id: string) => {
     const res = await fetch(`/api/portfolio/${id}`, { method: "DELETE" });
-    if (!res.ok) throw new Error("Failed to delete");
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error ?? "Failed to delete holding");
+    }
     setHoldings((prev) => prev.filter((h) => h.id !== id));
   };
 

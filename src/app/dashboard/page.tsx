@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -9,33 +10,41 @@ import { ChartDataPoint, HoldingWithPrice } from "@/types/portfolio";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
-  const session = await auth();
-  if (!session?.user?.id) redirect("/auth/login");
+function DashboardSkeleton() {
+  return (
+    <main className="max-w-7xl mx-auto px-4 py-8">
+      <div className="h-8 w-40 bg-gray-200 rounded animate-pulse mb-6" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="bg-gray-100 rounded-2xl h-28 animate-pulse" />
+        ))}
+      </div>
+      <div className="mt-8 bg-gray-100 rounded-2xl h-80 animate-pulse" />
+    </main>
+  );
+}
 
+async function DashboardContent({ userId }: { userId: string }) {
   const dbHoldings = await prisma.holding.findMany({
-    where: { userId: session.user.id },
+    where: { userId },
     orderBy: { createdAt: "desc" },
   });
 
   if (dbHoldings.length === 0) {
     return (
-      <>
-        <Navbar />
-        <main className="max-w-7xl mx-auto px-4 py-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
-          <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-            <p className="text-gray-500 text-lg">No holdings yet.</p>
-            <p className="text-gray-400 mt-1">
-              Go to{" "}
-              <a href="/portfolio" className="text-indigo-600 hover:underline">
-                Portfolio
-              </a>{" "}
-              to add your first stock.
-            </p>
-          </div>
-        </main>
-      </>
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold text-cyan-400 mb-6">Dashboard</h1>
+        <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+          <p className="text-gray-500 text-lg">No holdings yet.</p>
+          <p className="text-gray-400 mt-1">
+            Go to{" "}
+            <a href="/portfolio" className="text-indigo-600 hover:underline">
+              Portfolio
+            </a>{" "}
+            to add your first stock.
+          </p>
+        </div>
+      </main>
     );
   }
 
@@ -151,15 +160,26 @@ export default async function DashboardPage() {
   );
 
   return (
+    <main className="max-w-7xl mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold text-cyan-400 mb-6">Dashboard</h1>
+      <PortfolioSummary holdings={enriched} totalValue={totalValue} totalCost={totalCost} />
+      <div className="mt-8">
+        <PerformanceChart data={chartData} />
+      </div>
+    </main>
+  );
+}
+
+export default async function DashboardPage() {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/auth/login");
+
+  return (
     <>
       <Navbar />
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
-        <PortfolioSummary holdings={enriched} totalValue={totalValue} totalCost={totalCost} />
-        <div className="mt-8">
-          <PerformanceChart data={chartData} />
-        </div>
-      </main>
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DashboardContent userId={session.user.id} />
+      </Suspense>
     </>
   );
 }
