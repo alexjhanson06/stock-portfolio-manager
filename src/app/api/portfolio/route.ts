@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+
+// Force dynamic rendering so Next.js never caches fetch calls made by yahoo-finance2.
+export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { getStockQuote } from "@/lib/yahoo-finance";
 import { z } from "zod";
@@ -85,11 +88,10 @@ export async function POST(req: NextRequest) {
 
   try {
     await getStockQuote(symbol);
-  } catch {
-    return NextResponse.json(
-      { error: "Invalid stock symbol" },
-      { status: 400 }
-    );
+  } catch (err) {
+    console.error("[portfolio POST] getStockQuote failed:", err);
+    const message = err instanceof Error ? err.message : "Invalid stock symbol";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 
   const holding = await prisma.holding.create({

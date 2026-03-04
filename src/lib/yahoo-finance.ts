@@ -19,6 +19,7 @@ export async function getStockQuote(symbol: string): Promise<StockQuote> {
   const quote: any = await yahooFinance.quote(symbol, {}, { validateResult: false });
 
   if (!quote || quote.regularMarketPrice === undefined) {
+    console.error("[getStockQuote] Unexpected quote response for", symbol, quote);
     throw new Error(`Invalid stock symbol: ${symbol}`);
   }
 
