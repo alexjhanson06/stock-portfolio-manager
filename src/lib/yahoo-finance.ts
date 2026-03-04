@@ -16,7 +16,7 @@ export interface HistoricalDataPoint {
 
 export async function getStockQuote(symbol: string): Promise<StockQuote> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const quote: any = await yahooFinance.quote(symbol);
+  const quote: any = await yahooFinance.quote(symbol, {}, { validateResult: false });
 
   if (!quote || quote.regularMarketPrice === undefined) {
     throw new Error(`Invalid stock symbol: ${symbol}`);
@@ -38,11 +38,11 @@ export async function getHistoricalData(
   endDate: Date
 ): Promise<HistoricalDataPoint[]> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const result: any[] = await yahooFinance.historical(symbol, {
-    period1: startDate,
-    period2: endDate,
-    interval: "1d",
-  });
+  const result: any[] = await yahooFinance.historical(
+    symbol,
+    { period1: startDate, period2: endDate, interval: "1d" },
+    { validateResult: false }
+  );
 
   return result
     .filter(
